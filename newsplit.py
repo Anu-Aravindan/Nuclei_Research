@@ -6,20 +6,30 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 
-# tiff_path = "/Users/anuraagaravindan/Desktop/image_Processing-nonGit/NB_after500.tif"
-save_path_png = "/Users/anuraagaravindan/Desktop/image_Processing-nonGit/Undeformed_New.png"
+tiff_path = "/Users/anuraagaravindan/Documents/testcombine.py/complete.tif"
+save_path_png = "/Users/anuraagaravindan/Documents/testcombine.py/complete.png"
 output_dir = "/Users/anuraagaravindan/Desktop/image_Processing-nonGit/SplitImagesTest_Undeformed"
 
 def calculate_maximum_projection(tiff_file_path, save_path_png):
-    tiff_stack = imageio.volread(tiff_file_path)
+    tiff_stack = Image.open(tiff_file_path)
     
-    if len(tiff_stack.shape) != 3:
-        print("The provided TIFF file does not seem to be a 3D stack.")
-        return None
+    slices = []
     
-    tiff_stack_gray = [np.array(Image.fromarray(slice_rgb).convert('L')) for slice_rgb in tiff_stack]
-    max_projection = np.max(tiff_stack_gray, axis=0)
+    try:
+        while True:
+            slices.append(np.array(tiff_stack))
+            tiff_stack.seek(tiff_stack.tell() + 1)
+    except EOFError:
+        pass  # End of sequence
 
+    if len(slices) == 0:
+        print("The provided TIFF file does not contain any slices.")
+        return None
+
+    # Calculate the maximum projection
+    max_projection = np.max(slices, axis=0)
+
+    # Save the maximum projection image as PNG
     Image.fromarray(max_projection).save(save_path_png)
     print(max_projection.shape)
     print(f"Maximum projection image saved as: {save_path_png}")
@@ -73,5 +83,5 @@ def split_image_into_tiles_with_visualization(image_path, output_dir, tile_width
 
 
 # Example usage
-# calculate_maximum_projection(tiff_path, save_path_png)
+calculate_maximum_projection(tiff_path, save_path_png)
 split_image_into_tiles_with_visualization(save_path_png, output_dir)
